@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	nomadapi "github.com/hashicorp/nomad/api"
-	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 )
 
 // mockDeploymentLister implements deploymentLister for tests.
@@ -79,11 +79,11 @@ func TestDeploymentCollector_Status(t *testing.T) {
 
 func TestDeploymentCollector_TaskGroupCounts(t *testing.T) {
 	tests := []struct {
-		name            string
-		desired         int
-		placed          int
-		healthy         int
-		unhealthy       int
+		name      string
+		desired   int
+		placed    int
+		healthy   int
+		unhealthy int
 	}{
 		{"all_healthy", 3, 3, 3, 0},
 		{"rolling_update", 5, 4, 3, 1},

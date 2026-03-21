@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	nomadapi "github.com/hashicorp/nomad/api"
-	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 )
 
 // mockEvaluationLister implements evaluationLister for tests.
@@ -74,10 +74,10 @@ func TestEvalCollector_Status(t *testing.T) {
 
 func TestEvalCollector_FailedTGAllocs(t *testing.T) {
 	tests := []struct {
-		name              string
-		failedTGs         map[string]*nomadapi.AllocationMetric
-		taskGroup         string
-		wantCount         float64
+		name      string
+		failedTGs map[string]*nomadapi.AllocationMetric
+		taskGroup string
+		wantCount float64
 	}{
 		{
 			name:      "single_failure_no_coalesced",

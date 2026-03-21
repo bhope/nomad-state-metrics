@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	nomadapi "github.com/hashicorp/nomad/api"
-	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 )
 
 // mockNodeLister implements nodeLister for tests.
@@ -142,8 +142,8 @@ func TestNodeCollector_Drain(t *testing.T) {
 
 func TestNodeCollector_Schedulable(t *testing.T) {
 	tests := []struct {
-		name          string
-		eligibility   string
+		name            string
+		eligibility     string
 		wantSchedulable float64
 	}{
 		{"eligible", "eligible", 1},
@@ -165,10 +165,10 @@ func TestNodeCollector_Schedulable(t *testing.T) {
 
 func TestNodeCollector_AllocatableResources(t *testing.T) {
 	tests := []struct {
-		name        string
-		nodeRes     *nomadapi.NodeResources
-		reservedRes *nomadapi.NodeReservedResources
-		wantCPU     float64
+		name         string
+		nodeRes      *nomadapi.NodeResources
+		reservedRes  *nomadapi.NodeReservedResources
+		wantCPU      float64
 		wantMemBytes float64
 	}{
 		{

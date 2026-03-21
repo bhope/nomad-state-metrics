@@ -214,7 +214,7 @@ func TestAllocCollector_TaskMetrics(t *testing.T) {
 
 func TestAllocCollector_MultipleTasksPerAlloc(t *testing.T) {
 	taskStates := map[string]*nomadapi.TaskState{
-		"api":    {State: "running", Restarts: 0},
+		"api":     {State: "running", Restarts: 0},
 		"sidecar": {State: "running", Restarts: 1},
 	}
 	a := makeAlloc("platform", "infra", "api", "alloc-2", "node-2",
