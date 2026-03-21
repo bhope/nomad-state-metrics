@@ -1,5 +1,10 @@
 # nomad-state-metrics
 
+[![CI](https://github.com/bhope/nomad-state-metrics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bhope/nomad-state-metrics/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bhope/nomad-state-metrics)](https://goreportcard.com/report/github.com/bhope/nomad-state-metrics)
+[![Go Reference](https://pkg.go.dev/badge/github.com/bhope/nomad-state-metrics.svg)](https://pkg.go.dev/github.com/bhope/nomad-state-metrics)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Prometheus exporter that generates metrics about the state of [Nomad](https://www.nomadproject.io/) objects. Inspired by [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics) for Kubernetes.
 
 ---
