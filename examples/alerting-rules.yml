@@ -1,0 +1,51 @@
+groups:
+  - name: nomad.rules
+    rules:
+
+      # Fires when a job reaches the "dead" status, meaning it has stopped
+      # running and is not being rescheduled by Nomad. This is normal for
+      # batch jobs that complete successfully, so filter by job_type or
+      # namespace as needed to reduce noise.
+      - alert: NomadJobDead
+        expr: nomad_job_status{status="dead"} == 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nomad job {{ $labels.job_id }} is dead"
+          description: >
+            Job {{ $labels.job_id }} in namespace {{ $labels.namespace }}
+            has been in the "dead" state for more than 2 minutes.
+            This may indicate a crash, a failed deployment, or an intentional stop.
+
+      # Fires when an allocation has failed on its client node. Nomad's
+      # rescheduler may recover the allocation automatically, but sustained
+      # failures (for= duration) indicate a problem that cannot self-heal.
+      - alert: NomadAllocationFailed
+        expr: nomad_allocation_status{status="failed"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nomad allocation {{ $labels.alloc_id }} has failed"
+          description: >
+            Allocation {{ $labels.alloc_id }} for job {{ $labels.job_id }}
+            (task group {{ $labels.task_group }}, namespace {{ $labels.namespace }})
+            has been in the "failed" client status for more than 5 minutes.
+            Check the allocation logs on node {{ $labels.node_id }} for the root cause.
+
+      # Fires when a task within an allocation has restarted more than 5 times,
+      # which typically indicates a crash-looping task. Adjust the threshold
+      # to match your workload's expected restart behaviour.
+      - alert: NomadAllocationRestart
+        expr: nomad_allocation_restart_count > 5
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Task {{ $labels.task_name }} in allocation {{ $labels.alloc_id }} is crash-looping"
+          description: >
+            Task {{ $labels.task_name }} in allocation {{ $labels.alloc_id }}
+            (job {{ $labels.job_id }}, task group {{ $labels.task_group }},
+            namespace {{ $labels.namespace }}) has restarted {{ $value }} times.
+            Investigate the task logs to determine the root cause.
