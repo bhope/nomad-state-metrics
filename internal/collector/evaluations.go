@@ -3,8 +3,9 @@ package collector
 import (
 	"log/slog"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 )
 
 type evaluationCollector struct {
-	client *nomadapi.Client
+	store  *store.NomadStore
 	logger *slog.Logger
 }
 
-func newEvaluationCollector(client *nomadapi.Client, logger *slog.Logger) *evaluationCollector {
-	return &evaluationCollector{client: client, logger: logger}
+func newEvaluationCollector(s *store.NomadStore, logger *slog.Logger) *evaluationCollector {
+	return &evaluationCollector{store: s, logger: logger}
 }
 
 func (c *evaluationCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -37,11 +38,7 @@ func (c *evaluationCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *evaluationCollector) Collect(ch chan<- prometheus.Metric) {
-	evals, _, err := c.client.Evaluations().List(&nomadapi.QueryOptions{Namespace: "*"})
-	if err != nil {
-		c.logger.Error("failed to list evaluations", "error", err)
-		return
-	}
+	evals := c.store.ListEvaluations()
 
 	type key struct{ namespace, status string }
 	counts := map[key]int{}

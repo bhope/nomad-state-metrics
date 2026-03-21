@@ -3,8 +3,9 @@ package collector
 import (
 	"log/slog"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 )
 
 type allocationCollector struct {
-	client *nomadapi.Client
+	store  *store.NomadStore
 	logger *slog.Logger
 }
 
-func newAllocationCollector(client *nomadapi.Client, logger *slog.Logger) *allocationCollector {
-	return &allocationCollector{client: client, logger: logger}
+func newAllocationCollector(s *store.NomadStore, logger *slog.Logger) *allocationCollector {
+	return &allocationCollector{store: s, logger: logger}
 }
 
 func (c *allocationCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -37,11 +38,7 @@ func (c *allocationCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *allocationCollector) Collect(ch chan<- prometheus.Metric) {
-	allocs, _, err := c.client.Allocations().List(&nomadapi.QueryOptions{Namespace: "*"})
-	if err != nil {
-		c.logger.Error("failed to list allocations", "error", err)
-		return
-	}
+	allocs := c.store.ListAllocations()
 
 	type key struct{ namespace, clientStatus, desiredStatus string }
 	counts := map[key]int{}

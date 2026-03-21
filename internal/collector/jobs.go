@@ -3,8 +3,9 @@ package collector
 import (
 	"log/slog"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 )
 
 type jobCollector struct {
-	client *nomadapi.Client
+	store  *store.NomadStore
 	logger *slog.Logger
 }
 
-func newJobCollector(client *nomadapi.Client, logger *slog.Logger) *jobCollector {
-	return &jobCollector{client: client, logger: logger}
+func newJobCollector(s *store.NomadStore, logger *slog.Logger) *jobCollector {
+	return &jobCollector{store: s, logger: logger}
 }
 
 func (c *jobCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -37,11 +38,7 @@ func (c *jobCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *jobCollector) Collect(ch chan<- prometheus.Metric) {
-	jobs, _, err := c.client.Jobs().List(&nomadapi.QueryOptions{Namespace: "*"})
-	if err != nil {
-		c.logger.Error("failed to list jobs", "error", err)
-		return
-	}
+	jobs := c.store.ListJobs()
 
 	counts := map[string]map[string]int{} // namespace -> status -> count
 

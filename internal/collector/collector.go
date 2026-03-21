@@ -5,33 +5,27 @@ import (
 	"log/slog"
 	"sync"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
-// Collector gathers metrics from the Nomad API and implements prometheus.Collector.
+// Collector gathers metrics from a NomadStore and implements prometheus.Collector.
 type Collector struct {
-	client *nomadapi.Client
-	logger *slog.Logger
-
-	// Per-resource sub-collectors
 	sub []prometheus.Collector
 }
 
-// New returns a new Collector that scrapes the given Nomad client.
-func New(client *nomadapi.Client, logger *slog.Logger) *Collector {
-	c := &Collector{
-		client: client,
-		logger: logger,
+// New returns a new Collector that reads from the given NomadStore.
+func New(s *store.NomadStore, logger *slog.Logger) *Collector {
+	return &Collector{
+		sub: []prometheus.Collector{
+			newJobCollector(s, logger),
+			newNodeCollector(s, logger),
+			newAllocationCollector(s, logger),
+			newDeploymentCollector(s, logger),
+			newEvaluationCollector(s, logger),
+		},
 	}
-	c.sub = []prometheus.Collector{
-		newJobCollector(client, logger),
-		newNodeCollector(client, logger),
-		newAllocationCollector(client, logger),
-		newDeploymentCollector(client, logger),
-		newEvaluationCollector(client, logger),
-	}
-	return c
 }
 
 // Describe implements prometheus.Collector.

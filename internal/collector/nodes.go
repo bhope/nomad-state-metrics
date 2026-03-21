@@ -3,8 +3,9 @@ package collector
 import (
 	"log/slog"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 )
 
 type nodeCollector struct {
-	client *nomadapi.Client
+	store  *store.NomadStore
 	logger *slog.Logger
 }
 
-func newNodeCollector(client *nomadapi.Client, logger *slog.Logger) *nodeCollector {
-	return &nodeCollector{client: client, logger: logger}
+func newNodeCollector(s *store.NomadStore, logger *slog.Logger) *nodeCollector {
+	return &nodeCollector{store: s, logger: logger}
 }
 
 func (c *nodeCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -37,11 +38,7 @@ func (c *nodeCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *nodeCollector) Collect(ch chan<- prometheus.Metric) {
-	nodes, _, err := c.client.Nodes().List(nil)
-	if err != nil {
-		c.logger.Error("failed to list nodes", "error", err)
-		return
-	}
+	nodes := c.store.ListNodes()
 
 	type key struct{ status, eligibility string }
 	counts := map[key]int{}

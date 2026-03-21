@@ -3,8 +3,9 @@ package collector
 import (
 	"log/slog"
 
-	nomadapi "github.com/hashicorp/nomad/api"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/bhope/nomad-state-metrics/internal/store"
 )
 
 var (
@@ -23,12 +24,12 @@ var (
 )
 
 type deploymentCollector struct {
-	client *nomadapi.Client
+	store  *store.NomadStore
 	logger *slog.Logger
 }
 
-func newDeploymentCollector(client *nomadapi.Client, logger *slog.Logger) *deploymentCollector {
-	return &deploymentCollector{client: client, logger: logger}
+func newDeploymentCollector(s *store.NomadStore, logger *slog.Logger) *deploymentCollector {
+	return &deploymentCollector{store: s, logger: logger}
 }
 
 func (c *deploymentCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -37,11 +38,7 @@ func (c *deploymentCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *deploymentCollector) Collect(ch chan<- prometheus.Metric) {
-	deploys, _, err := c.client.Deployments().List(&nomadapi.QueryOptions{Namespace: "*"})
-	if err != nil {
-		c.logger.Error("failed to list deployments", "error", err)
-		return
-	}
+	deploys := c.store.ListDeployments()
 
 	type key struct{ namespace, status string }
 	counts := map[key]int{}
