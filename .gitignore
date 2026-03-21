@@ -1,0 +1,23 @@
+# Binaries
+bin/
+*.exe
+*.out
+
+# Test output
+*.test
+*.coverprofile
+coverage.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# Editor / OS artefacts
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# GoReleaser output
+dist/
