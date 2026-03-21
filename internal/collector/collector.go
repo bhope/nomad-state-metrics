@@ -20,10 +20,10 @@ func New(s *store.NomadStore, logger *slog.Logger) *Collector {
 	return &Collector{
 		sub: []prometheus.Collector{
 			newJobCollector(s, logger),
-			newNodeCollector(s, logger),
-			newAllocationCollector(s, logger),
-			newDeploymentCollector(s, logger),
-			newEvaluationCollector(s, logger),
+			newNodeDetailCollector(s, logger),
+			newAllocCollector(s, logger),
+			newDeploymentMetricCollector(s, logger),
+			newEvalMetricCollector(s, logger),
 		},
 	}
 }
