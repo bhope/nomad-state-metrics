@@ -1,3 +1,4 @@
+// Package main is the entry point for the nomad-state-metrics server.
 package main
 
 import (
@@ -70,7 +71,7 @@ func main() {
 	telemetryMux.Handle("/metrics", promhttp.HandlerFor(telemetryRegistry, promhttp.HandlerOpts{
 		EnableOpenMetrics: true,
 	}))
-	telemetryMux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	telemetryMux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
