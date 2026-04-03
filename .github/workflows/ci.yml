@@ -50,6 +50,6 @@ jobs:
           go-version-file: go.mod
           cache: true
       - name: Build binary
-        run: go build -o bin/nomad-state-metrics ./cmd/nomad-state-metrics
+        run: go build -o nomad-state-metrics ./cmd/nomad-state-metrics
       - name: Build Docker image
         run: docker build -t nomad-state-metrics:ci .
