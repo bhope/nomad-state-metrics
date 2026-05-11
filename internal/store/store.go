@@ -14,9 +14,10 @@ import (
 // NomadStore periodically polls the Nomad API and caches the results
 // so that Prometheus scrapes read from memory rather than hitting Nomad directly.
 type NomadStore struct {
-	client       *nomadapi.Client
-	pollInterval time.Duration
-	logger       *slog.Logger
+	client          *nomadapi.Client
+	pollInterval    time.Duration
+	logger          *slog.Logger
+	jobStatusFilter map[string]struct{}
 
 	mu          sync.RWMutex
 	jobs        []*nomadapi.JobListStub
@@ -27,11 +28,12 @@ type NomadStore struct {
 }
 
 // New returns a NomadStore that will poll the given client on the given interval.
-func New(client *nomadapi.Client, pollInterval time.Duration, logger *slog.Logger) *NomadStore {
+func New(client *nomadapi.Client, pollInterval time.Duration, logger *slog.Logger, jobStatusFilter map[string]struct{}) *NomadStore {
 	return &NomadStore{
-		client:       client,
-		pollInterval: pollInterval,
-		logger:       logger,
+		client:          client,
+		pollInterval:    pollInterval,
+		logger:          logger,
+		jobStatusFilter: jobStatusFilter,
 	}
 }
 
@@ -59,6 +61,15 @@ func (s *NomadStore) poll() {
 	if jobs, _, err := s.client.Jobs().List(q); err != nil {
 		s.logger.Error("poll: failed to list jobs", "error", err)
 	} else {
+		if len(s.jobStatusFilter) > 0 {
+			filtered := jobs[:0]
+			for _, j := range jobs {
+				if _, ok := s.jobStatusFilter[j.Status]; ok {
+					filtered = append(filtered, j)
+				}
+			}
+			jobs = filtered
+		}
 		s.mu.Lock()
 		s.jobs = jobs
 		s.mu.Unlock()

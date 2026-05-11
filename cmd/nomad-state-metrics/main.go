@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -24,12 +25,13 @@ import (
 
 func main() {
 	var (
-		nomadAddr     = flag.String("nomad-address", "http://localhost:4646", "Nomad API address (ignored when -task-api is set)")
-		taskAPI       = flag.Bool("task-api", false, "Use Nomad Task API via Unix Domain Socket (reads NOMAD_TASK_API_UDS env var)")
-		port          = flag.Int("port", 9441, "Port to serve Nomad state metrics on")
-		telemetryPort = flag.Int("telemetry-port", 9442, "Port to serve self-metrics and /healthz on")
-		pollInterval  = flag.Duration("poll-interval", 30*time.Second, "Interval between Nomad API polls")
-		logLevel      = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
+		nomadAddr       = flag.String("nomad-address", "http://localhost:4646", "Nomad API address (ignored when -task-api is set)")
+		taskAPI         = flag.Bool("task-api", false, "Use Nomad Task API via Unix Domain Socket (reads NOMAD_TASK_API_UDS env var)")
+		jobStatusFilter = flag.String("job-status-filter", "", "Comma-separated job statuses to include (e.g. running,pending). Empty includes all.")
+		port            = flag.Int("port", 9441, "Port to serve Nomad state metrics on")
+		telemetryPort   = flag.Int("telemetry-port", 9442, "Port to serve self-metrics and /healthz on")
+		pollInterval    = flag.Duration("poll-interval", 30*time.Second, "Interval between Nomad API polls")
+		logLevel        = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
 	)
 	flag.Parse()
 
@@ -60,7 +62,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	nomadStore := store.New(client, *pollInterval, logger)
+	var statusFilter map[string]struct{}
+	if *jobStatusFilter != "" {
+		statusFilter = make(map[string]struct{})
+		for _, s := range strings.Split(*jobStatusFilter, ",") {
+			statusFilter[strings.TrimSpace(s)] = struct{}{}
+		}
+	}
+
+	nomadStore := store.New(client, *pollInterval, logger, statusFilter)
 
 	// Main registry: Nomad state metrics only.
 	stateRegistry := prometheus.NewRegistry()
