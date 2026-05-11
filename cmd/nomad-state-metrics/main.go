@@ -24,7 +24,8 @@ import (
 
 func main() {
 	var (
-		nomadAddr     = flag.String("nomad-address", "http://localhost:4646", "Nomad API address")
+		nomadAddr     = flag.String("nomad-address", "http://localhost:4646", "Nomad API address (ignored when -task-api is set)")
+		taskAPI       = flag.Bool("task-api", false, "Use Nomad Task API via Unix Domain Socket (reads NOMAD_TASK_API_UDS env var)")
 		port          = flag.Int("port", 9441, "Port to serve Nomad state metrics on")
 		telemetryPort = flag.Int("telemetry-port", 9442, "Port to serve self-metrics and /healthz on")
 		pollInterval  = flag.Duration("poll-interval", 30*time.Second, "Interval between Nomad API polls")
@@ -41,7 +42,17 @@ func main() {
 	slog.SetDefault(logger)
 
 	cfg := nomadapi.DefaultConfig()
-	cfg.Address = *nomadAddr
+	if *taskAPI {
+		udsPath := os.Getenv("NOMAD_TASK_API_UDS")
+		if udsPath == "" {
+			slog.Error("NOMAD_TASK_API_UDS is not set; required when -task-api is enabled")
+			os.Exit(1)
+		}
+		cfg.Address = "unix://" + udsPath
+		slog.Info("using Nomad Task API via Unix Domain Socket", "socket", udsPath)
+	} else {
+		cfg.Address = *nomadAddr
+	}
 
 	client, err := nomadapi.NewClient(cfg)
 	if err != nil {
