@@ -24,6 +24,7 @@ func New(s *store.NomadStore, logger *slog.Logger) *Collector {
 			newAllocCollector(s, logger),
 			newDeploymentMetricCollector(s, logger),
 			newEvalMetricCollector(s, logger),
+			newServerCollector(s, logger),
 		},
 	}
 }
