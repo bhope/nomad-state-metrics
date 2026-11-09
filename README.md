@@ -167,13 +167,7 @@ The job exposes:
 
 ## Contributing
 
-1. Fork the repository and create a feature branch.
-2. Make your changes. Keep collector logic in `internal/collector/` and API polling in `internal/store/`.
-3. Run `go test ./...` before submitting — all tests must pass.
-4. Run `go vet ./...` and ensure there are no linter warnings.
-5. Open a pull request with a clear description of what the change does and why.
-
-For new metrics: add the `prometheus.Desc` var, emit it in `Collect`, register it in `Describe`, and add a unit test that verifies the metric name, labels, and value.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started and [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
 ---
 
