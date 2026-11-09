@@ -114,6 +114,13 @@ All metrics are `Gauge` type. Status metrics use a binary encoding: for each pos
 | `nomad_node_allocatable_cpu_mhz` | `node_id`, `name`, `datacenter` | Allocatable CPU capacity in MHz (total node CPU minus reserved CPU). |
 | `nomad_node_allocatable_memory_bytes` | `node_id`, `name`, `datacenter` | Allocatable memory capacity in bytes (total node memory minus reserved memory). |
 
+### Servers
+
+| Metric Name | Labels | Description |
+|---|---|---|
+| `nomad_server_info` | `name`, `region`, `datacenter`, `address`, `version`, `status` | Static server information; always `1`. `status` is the gossip status such as `alive`, `failed` or `left`. |
+| `nomad_server_leader` | `name`, `region` | `1` if the server is the leader of its region, `0` otherwise. |
+
 ### Deployments
 
 | Metric Name | Labels | Description |

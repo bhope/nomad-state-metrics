@@ -25,6 +25,8 @@ type NomadStore struct {
 	nodes       []*nomadapi.NodeListStub
 	deployments []*nomadapi.Deployment
 	evaluations []*nomadapi.Evaluation
+	servers     []*nomadapi.AgentMember
+	leaders     map[string]string
 }
 
 // New returns a NomadStore that will poll the given client on the given interval.
@@ -91,6 +93,8 @@ func (s *NomadStore) poll() {
 		s.mu.Unlock()
 	}
 
+	s.pollServers()
+
 	if deploys, _, err := s.client.Deployments().List(q); err != nil {
 		s.logger.Error("poll: failed to list deployments", "error", err)
 	} else {
@@ -106,6 +110,35 @@ func (s *NomadStore) poll() {
 		s.evaluations = evals
 		s.mu.Unlock()
 	}
+}
+
+func (s *NomadStore) pollServers() {
+	members, err := s.client.Agent().Members()
+	if err != nil {
+		s.logger.Error("poll: failed to list server members", "error", err)
+		return
+	}
+
+	leaders := make(map[string]string)
+	seen := make(map[string]struct{})
+	for _, m := range members.Members {
+		region := m.Tags["region"]
+		if _, ok := seen[region]; ok || region == "" || m.Status == "left" {
+			continue
+		}
+		seen[region] = struct{}{}
+		leader, err := s.client.Status().RegionLeader(region)
+		if err != nil {
+			s.logger.Error("poll: failed to get region leader", "region", region, "error", err)
+			continue
+		}
+		leaders[region] = leader
+	}
+
+	s.mu.Lock()
+	s.servers = members.Members
+	s.leaders = leaders
+	s.mu.Unlock()
 }
 
 // ListJobs returns the most recently cached job list.
@@ -141,4 +174,12 @@ func (s *NomadStore) ListEvaluations() []*nomadapi.Evaluation {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.evaluations
+}
+
+// ListServers returns the most recently cached server members and the
+// RPC address of the leader in each region.
+func (s *NomadStore) ListServers() ([]*nomadapi.AgentMember, map[string]string) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.servers, s.leaders
 }
